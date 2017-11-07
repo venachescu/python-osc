@@ -40,7 +40,7 @@ from pythonosc import osc_message
 from pythonosc import osc_packet
 
 
-def _call_handlers_for_packet(data, dispatcher):
+def _call_handlers_for_packet(data, client_address, dispatcher):
   """
   This function calls the handlers registered to the dispatcher for
   every message it found in the packet.
@@ -70,9 +70,9 @@ def _call_handlers_for_packet(data, dispatcher):
       for handler in handlers:
         if handler.args:
           handler.callback(
-              timed_msg.message.address, handler.args, *timed_msg.message)
+              timed_msg.message.address, handler.args, client_address, *timed_msg.message)
         else:
-          handler.callback(timed_msg.message.address, *timed_msg.message)
+          handler.callback(timed_msg.message.address, client_address, *timed_msg.message)
   except osc_packet.ParseError:
     pass
 
@@ -89,7 +89,7 @@ class _UDPHandler(socketserver.BaseRequestHandler):
   threads/processes will be spawned.
   """
   def handle(self):
-    _call_handlers_for_packet(self.request[0], self.server.dispatcher)
+    _call_handlers_for_packet(self.request[0], self.client_address, self.server.dispatcher)
 
 
 def _is_valid_request(request):
